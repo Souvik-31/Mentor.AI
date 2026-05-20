@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import Home from './pages/Home';
 import VideoView from './pages/VideoView';
+import SemPrep from './pages/SemPrep';
 import Login from './pages/Login';
 import Navbar from './components/Navbar';
 import { AuthProvider } from './context/AuthContext';
@@ -17,6 +18,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/video/:videoId" element={<VideoView />} />
+                <Route path="/semprep" element={<SemPrep />} />
                 <Route path="/login" element={<Login />} />
               </Routes>
             </main>

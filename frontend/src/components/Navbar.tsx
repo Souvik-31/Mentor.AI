@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { GraduationCap, LogOut, User } from 'lucide-react';
+import { GraduationCap, LogOut, User, FileText } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
@@ -14,6 +14,13 @@ const Navbar = () => {
           <span>MentorAI</span>
         </Link>
         <div className="flex items-center gap-6">
+          <Link 
+            to="/semprep" 
+            className="flex items-center gap-1 text-slate-600 hover:text-blue-600 transition-colors font-medium"
+          >
+            <FileText size={20} />
+            <span>SemPrep</span>
+          </Link>
           {user ? (
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 text-slate-700 font-medium">
