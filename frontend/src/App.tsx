@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import VideoView from './pages/VideoView';
 import SemPrep from './pages/SemPrep';
 import Login from './pages/Login';
+import InterviewGuide from './pages/InterviewGuide';
 import Navbar from './components/Navbar';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
@@ -53,6 +54,16 @@ function App() {
                     <ProtectedRoute>
                       <div className="container mx-auto px-4 py-8">
                         <SemPrep />
+                      </div>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/interview"
+                  element={
+                    <ProtectedRoute>
+                      <div className="container mx-auto px-4 py-8">
+                        <InterviewGuide />
                       </div>
                     </ProtectedRoute>
                   }

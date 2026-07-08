@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { GraduationCap, LogOut, User, FileText, Menu, X, Sparkles } from 'lucide-react';
+import { GraduationCap, LogOut, User, FileText, Menu, X, Sparkles, MessageSquare } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -87,14 +87,25 @@ const Navbar = () => {
               ))}
 
               {user && (
-                <Link
-                  to="/semprep"
-                  className="flex items-center gap-1.5 text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 text-sm font-semibold transition-colors duration-200 relative py-1 group"
-                >
-                  <FileText size={16} />
-                  <span>SemPrep</span>
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
-                </Link>
+                <>
+                  <Link
+                    to="/semprep"
+                    className="flex items-center gap-1.5 text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 text-sm font-semibold transition-colors duration-200 relative py-1 group"
+                  >
+                    <FileText size={16} />
+                    <span>SemPrep</span>
+                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+                  </Link>
+
+                  <Link
+                    to="/interview"
+                    className="flex items-center gap-1.5 text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 text-sm font-semibold transition-colors duration-200 relative py-1 group"
+                  >
+                    <MessageSquare size={16} />
+                    <span>Interview Guide</span>
+                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+                  </Link>
+                </>
               )}
             </div>
 
@@ -183,13 +194,23 @@ const Navbar = () => {
                   </a>
                 ))}
                 {user && (
-                  <Link
-                    to="/semprep"
-                    className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 text-base font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all duration-200"
-                  >
-                    <FileText size={18} />
-                    <span>SemPrep</span>
-                  </Link>
+                  <>
+                    <Link
+                      to="/semprep"
+                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 text-base font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all duration-200"
+                    >
+                      <FileText size={18} />
+                      <span>SemPrep</span>
+                    </Link>
+
+                    <Link
+                      to="/interview"
+                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 text-base font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all duration-200"
+                    >
+                      <MessageSquare size={18} />
+                      <span>Interview Guide</span>
+                    </Link>
+                  </>
                 )}
               </div>
 
