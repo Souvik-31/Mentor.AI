@@ -1,5 +1,4 @@
-import React from 'react';
-import { Play, Mail } from 'lucide-react';
+import { Mail } from 'lucide-react';
 
 const Login = () => {
   const handleGoogleLogin = () => {
