@@ -128,7 +128,7 @@ class RAGService {
     const chat = this.chatModel.startChat({
       history: formattedHistory,
       generationConfig: {
-        maxOutputTokens: 1000,
+        maxOutputTokens: 4096,
       }
     });
 

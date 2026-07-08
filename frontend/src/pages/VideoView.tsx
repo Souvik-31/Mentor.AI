@@ -80,7 +80,7 @@ const VideoView = () => {
             ))}
           </div>
 
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 flex flex-col min-h-0 p-6">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}
@@ -88,12 +88,12 @@ const VideoView = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
                 transition={{ duration: 0.2 }}
-                className="h-full"
+                className="h-full flex flex-col min-h-0"
               >
-                {activeTab === 'summary' && <SummaryView summary={video.summary} />}
+                {activeTab === 'summary' && <div className="overflow-y-auto h-full pr-1"><SummaryView summary={video.summary} /></div>}
                 {activeTab === 'chat' && <ChatView videoId={videoId!} />}
-                {activeTab === 'quiz' && <QuizView quiz={video.quiz} videoId={videoId!} />}
-                {activeTab === 'transcript' && <TranscriptView transcript={video.transcript} />}
+                {activeTab === 'quiz' && <div className="overflow-y-auto h-full pr-1"><QuizView quiz={video.quiz} videoId={videoId!} /></div>}
+                {activeTab === 'transcript' && <div className="overflow-y-auto h-full pr-1"><TranscriptView transcript={video.transcript} /></div>}
               </motion.div>
             </AnimatePresence>
           </div>

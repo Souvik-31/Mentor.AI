@@ -2,6 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Send, Sparkles, Loader2, BookOpen, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import MarkdownIt from 'markdown-it';
+import DOMPurify from 'dompurify';
+
+const md = new MarkdownIt({
+  html: false,
+  linkify: true,
+  typographer: true
+});
 
 interface Message {
   role: 'user' | 'model';
@@ -88,9 +96,9 @@ const ChatView: React.FC<ChatViewProps> = ({ videoId }) => {
   };
 
   return (
-    <div className="flex flex-col h-[570px] relative">
+    <div className="flex flex-col h-full min-h-0 relative">
       {/* Messages Window */}
-      <div className="flex-grow overflow-y-auto space-y-4 pr-1 scrollbar-thin">
+      <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin">
         <AnimatePresence initial={false}>
           {messages.map((msg, idx) => {
             const isUser = msg.role === 'user';
@@ -111,13 +119,29 @@ const ChatView: React.FC<ChatViewProps> = ({ videoId }) => {
                         : 'bg-slate-100 text-slate-800 rounded-bl-none border border-slate-200/50'
                     }`}
                   >
-                    {!isUser && !msg.isWelcome && (
-                      <div className="flex items-center gap-1 text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-1">
-                        <Sparkles size={10} className="text-blue-500" />
-                        <span>AI Tutor</span>
+                    {!isUser ? (
+                      <div>
+                        {!msg.isWelcome && (
+                          <div className="flex items-center gap-1 text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2 border-b border-slate-200/60 pb-1">
+                            <Sparkles size={10} className="text-blue-500 animate-pulse" />
+                            <span>AI Tutor</span>
+                          </div>
+                        )}
+                        <div
+                          className="prose prose-sm max-w-none text-slate-800 dark:prose-invert 
+                                     prose-p:my-1 prose-p:leading-relaxed prose-headings:text-slate-900 
+                                     prose-headings:font-bold prose-headings:my-2 prose-ul:list-disc 
+                                     prose-ul:pl-4 prose-ol:list-decimal prose-ol:pl-4 prose-strong:font-bold 
+                                     prose-code:bg-slate-200/60 prose-code:px-1 prose-code:py-0.5 
+                                     prose-code:rounded prose-code:text-[11px] prose-code:font-mono"
+                          dangerouslySetInnerHTML={{
+                            __html: DOMPurify.sanitize(md.render(msg.text))
+                          }}
+                        />
                       </div>
+                    ) : (
+                      <p className="whitespace-pre-wrap">{msg.text}</p>
                     )}
-                    <p className="whitespace-pre-wrap">{msg.text}</p>
                   </div>
 
                   {/* Collapsible Vector Sources (RAG Chunks) */}
