@@ -86,14 +86,16 @@ const Navbar = () => {
                 </a>
               ))}
 
-              <Link
-                to="/semprep"
-                className="flex items-center gap-1.5 text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 text-sm font-semibold transition-colors duration-200 relative py-1 group"
-              >
-                <FileText size={16} />
-                <span>SemPrep</span>
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
-              </Link>
+              {user && (
+                <Link
+                  to="/semprep"
+                  className="flex items-center gap-1.5 text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 text-sm font-semibold transition-colors duration-200 relative py-1 group"
+                >
+                  <FileText size={16} />
+                  <span>SemPrep</span>
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+                </Link>
+              )}
             </div>
 
             {/* Auth Buttons */}
@@ -180,13 +182,15 @@ const Navbar = () => {
                     {link.label}
                   </a>
                 ))}
-                <Link
-                  to="/semprep"
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 text-base font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all duration-200"
-                >
-                  <FileText size={18} />
-                  <span>SemPrep</span>
-                </Link>
+                {user && (
+                  <Link
+                    to="/semprep"
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 text-base font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all duration-200"
+                  >
+                    <FileText size={18} />
+                    <span>SemPrep</span>
+                  </Link>
+                )}
               </div>
 
               <div className="pt-4 border-t border-slate-200/60 dark:border-slate-800/60">

@@ -21,8 +21,10 @@ import {
   GraduationCap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
+  const { user } = useAuth();
   // --- Core Processing State ---
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
@@ -31,6 +33,12 @@ const Home = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -845,7 +853,7 @@ const Home = () => {
                   <div>
                     <h4 className="font-bold text-slate-900">Email Address</h4>
                     <a href="mailto:support@mentor.ai" className="text-slate-500 hover:text-blue-600 text-sm font-semibold transition-colors">
-                      support@mentor.ai
+                      souvik.sarkar3103@gmail.com
                     </a>
                   </div>
                 </div>
@@ -855,8 +863,8 @@ const Home = () => {
                     <Phone size={22} />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-900">Student Hotline</h4>
-                    <p className="text-slate-500 text-sm font-semibold">+1 (555) 902-8321</p>
+                    <h4 className="font-bold text-slate-900">Phone</h4>
+                    <p className="text-slate-500 text-sm font-semibold">+91 1234567890</p>
                   </div>
                 </div>
 
@@ -865,8 +873,8 @@ const Home = () => {
                     <MapPin size={22} />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-900">Silicon Valley HQ</h4>
-                    <p className="text-slate-500 text-sm font-semibold">120 University Avenue, Palo Alto, CA 94301</p>
+                    <h4 className="font-bold text-slate-900">HQ</h4>
+                    <p className="text-slate-500 text-sm font-semibold">Mahatma Gandhi Avenue, Durgapur, India</p>
                   </div>
                 </div>
               </div>
