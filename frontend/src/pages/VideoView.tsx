@@ -3,16 +3,17 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import YouTube from 'react-youtube';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FileText, HelpCircle, List, Loader2 } from 'lucide-react';
+import { FileText, HelpCircle, List, Loader2, MessageSquare } from 'lucide-react';
 import SummaryView from '../components/SummaryView';
 import QuizView from '../components/QuizView';
 import TranscriptView from '../components/TranscriptView';
+import ChatView from '../components/ChatView';
 
 const VideoView = () => {
   const { videoId } = useParams<{ videoId: string }>();
   const [video, setVideo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'summary' | 'quiz' | 'transcript'>('summary');
+  const [activeTab, setActiveTab] = useState<'summary' | 'chat' | 'quiz' | 'transcript'>('summary');
 
   useEffect(() => {
     const fetchVideo = async () => {
@@ -59,6 +60,7 @@ const VideoView = () => {
           <div className="flex border-b border-slate-100">
             {[
               { id: 'summary', icon: FileText, label: 'Summary' },
+              { id: 'chat', icon: MessageSquare, label: 'Ask AI' },
               { id: 'quiz', icon: HelpCircle, label: 'Quiz' },
               { id: 'transcript', icon: List, label: 'Notes' },
             ].map((tab) => (
@@ -70,7 +72,7 @@ const VideoView = () => {
                 }`}
               >
                 <tab.icon size={20} />
-                <span className="text-xs uppercase tracking-wider">{tab.label}</span>
+                <span className="text-xs uppercase tracking-wider text-center">{tab.label}</span>
                 {activeTab === tab.id && (
                   <motion.div layoutId="activeTab" className="h-1 w-8 bg-blue-600 rounded-full mt-1" />
                 )}
@@ -86,8 +88,10 @@ const VideoView = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
                 transition={{ duration: 0.2 }}
+                className="h-full"
               >
                 {activeTab === 'summary' && <SummaryView summary={video.summary} />}
+                {activeTab === 'chat' && <ChatView videoId={videoId!} />}
                 {activeTab === 'quiz' && <QuizView quiz={video.quiz} videoId={videoId!} />}
                 {activeTab === 'transcript' && <TranscriptView transcript={video.transcript} />}
               </motion.div>

@@ -11,6 +11,10 @@ const videoSchema = new mongoose.Schema({
     options: [String],
     correctAnswer: String
   }],
+  chunks: [{
+    text: String,
+    embedding: [Number]
+  }],
   processedAt: { type: Date, default: Date.now }
 });
 

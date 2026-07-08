@@ -1,8 +1,29 @@
-import { Mail } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Mail, Loader2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
   const handleGoogleLogin = () => {
     window.location.href = 'http://localhost:5000/api/auth/google';
+  };
+
+  const handleEmailLogin = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await login('student@mentor.ai', 'password');
+      navigate('/');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to log in with test email');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -14,7 +35,8 @@ const Login = () => {
         <div className="space-y-4">
           <button
             onClick={handleGoogleLogin}
-            className="w-full py-4 px-6 border-2 border-slate-200 rounded-2xl font-semibold text-slate-700 hover:bg-slate-50 transition-all flex items-center justify-center gap-3"
+            disabled={loading}
+            className="w-full py-4 px-6 border-2 border-slate-200 rounded-2xl font-semibold text-slate-700 hover:bg-slate-50 transition-all flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50"
           >
             <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
             Continue with Google
@@ -25,11 +47,25 @@ const Login = () => {
             <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-slate-400 tracking-widest">Or</span></div>
           </div>
 
-          <button className="w-full py-4 px-6 bg-slate-900 text-white rounded-2xl font-semibold hover:bg-slate-800 transition-all flex items-center justify-center gap-3">
-            <Mail size={20} />
-            Continue with Email
+          <button
+            onClick={handleEmailLogin}
+            disabled={loading}
+            className="w-full py-4 px-6 bg-slate-900 text-white rounded-2xl font-semibold hover:bg-slate-800 transition-all flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50"
+          >
+            {loading ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : (
+              <Mail size={20} />
+            )}
+            <span>{loading ? 'Logging in...' : 'Continue with Email (Mock)'}</span>
           </button>
         </div>
+
+        {error && (
+          <p className="mt-4 text-xs font-semibold text-red-600 bg-red-50 p-2.5 rounded-xl">
+            {error}
+          </p>
+        )}
         
         <p className="mt-8 text-sm text-slate-400">
           By continuing, you agree to our Terms of Service and Privacy Policy.
