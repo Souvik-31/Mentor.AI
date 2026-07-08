@@ -39,7 +39,7 @@ interface Message {
   text: string;
 }
 
-const ROLES = [
+const ROLES_STATIC = [
   {
     id: 'frontend',
     title: 'Frontend Engineer',
@@ -79,6 +79,7 @@ const ROLES = [
 ];
 
 const InterviewGuide = () => {
+  const [roles, setRoles] = useState<any[]>([]);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
   const [history, setHistory] = useState<QAHistoryItem[]>([]);
@@ -87,6 +88,10 @@ const InterviewGuide = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
+  // Custom Role Creator states
+  const [customRoleTitle, setCustomRoleTitle] = useState('');
+  const [addingRole, setAddingRole] = useState(false);
+
   // History UI States
   const [openCategories, setOpenCategories] = useState<{ [key: string]: boolean }>({});
   
@@ -99,6 +104,33 @@ const InterviewGuide = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, loading]);
+
+  // Load available roles (defaults + custom)
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/api/interview/roles', { withCredentials: true });
+        const mapped = res.data.map((r: any) => {
+          const matchedStatic = ROLES_STATIC.find(sr => sr.id === r.id);
+          if (matchedStatic) {
+            return { ...r, icon: matchedStatic.icon, color: matchedStatic.color, bgColor: matchedStatic.bgColor, textColor: matchedStatic.textColor };
+          }
+          return {
+            ...r,
+            icon: Sparkles,
+            color: 'from-teal-500 to-emerald-500',
+            bgColor: 'bg-teal-50',
+            textColor: 'text-teal-600'
+          };
+        });
+        setRoles(mapped);
+      } catch (err) {
+        console.error('Failed to load roles', err);
+      }
+    };
+
+    fetchRoles();
+  }, [selectedRole]);
 
   // Load suggested questions and history when role is selected
   useEffect(() => {
@@ -116,7 +148,7 @@ const InterviewGuide = () => {
         setHistory(histRes.data);
         
         // Initial welcome message
-        const roleLabel = ROLES.find(r => r.id === selectedRole)?.title || 'Technical';
+        const roleLabel = roles.find(r => r.id === selectedRole)?.title || selectedRole || 'Technical';
         setMessages([
           {
             role: 'model',
@@ -230,6 +262,38 @@ const InterviewGuide = () => {
     setError(null);
   };
 
+  const handleAddCustomRole = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customRoleTitle.trim() || addingRole) return;
+
+    setAddingRole(true);
+    setError(null);
+
+    try {
+      const res = await axios.post(
+        'http://localhost:5000/api/interview/roles',
+        { title: customRoleTitle.trim() },
+        { withCredentials: true }
+      );
+
+      const newRole = {
+        ...res.data,
+        icon: Sparkles,
+        color: 'from-teal-500 to-emerald-500',
+        bgColor: 'bg-teal-50',
+        textColor: 'text-teal-600'
+      };
+
+      setRoles(prev => [...prev, newRole]);
+      setCustomRoleTitle('');
+      setSelectedRole(newRole.id);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to add custom role');
+    } finally {
+      setAddingRole(false);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* HEADER BAR */}
@@ -254,6 +318,13 @@ const InterviewGuide = () => {
         )}
       </div>
 
+      {error && !selectedRole && (
+        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl flex items-center gap-2 text-sm font-semibold max-w-xl mx-auto">
+          <AlertCircle size={18} className="text-red-500" />
+          <span>{error}</span>
+        </div>
+      )}
+
       {/* SCREEN 1: ROLE SELECTOR */}
       {!selectedRole && (
         <div className="space-y-8">
@@ -264,9 +335,9 @@ const InterviewGuide = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto pb-10">
-            {ROLES.map((role) => {
-              const Icon = role.icon;
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+            {roles.map((role) => {
+              const Icon = role.icon || Sparkles;
               return (
                 <div
                   key={role.id}
@@ -292,6 +363,49 @@ const InterviewGuide = () => {
                 </div>
               );
             })}
+          </div>
+
+          {/* Add Target Role Card Form */}
+          <div className="max-w-md mx-auto bg-white border border-slate-200/80 rounded-3xl p-8 shadow-sm">
+            <h3 className="font-extrabold text-lg text-slate-800 mb-4 flex items-center gap-2">
+              <Sparkles className="text-teal-500 animate-pulse" size={20} />
+              <span>Add Custom Target Role</span>
+            </h3>
+            
+            <form onSubmit={handleAddCustomRole} className="space-y-4">
+              <div className="space-y-1">
+                <label htmlFor="custom-role" className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                  Role Title
+                </label>
+                <input
+                  type="text"
+                  id="custom-role"
+                  value={customRoleTitle}
+                  onChange={(e) => setCustomRoleTitle(e.target.value)}
+                  placeholder="e.g. Mobile Developer, Cloud Architect"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 font-semibold text-sm transition-colors"
+                  required
+                  disabled={addingRole}
+                />
+              </div>
+              
+              <button
+                type="submit"
+                disabled={addingRole || !customRoleTitle.trim()}
+                className="w-full py-3.5 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-xl font-bold text-sm shadow-md shadow-teal-500/10 hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {addingRole ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    <span>Adding Role...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>+ Add & Open Prep Room</span>
+                  </>
+                )}
+              </button>
+            </form>
           </div>
         </div>
       )}
@@ -468,7 +582,7 @@ const InterviewGuide = () => {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={`Ask a question about ${ROLES.find(r => r.id === selectedRole)?.title || 'interview'} topics...`}
+                placeholder={`Ask a question about ${roles.find((r: any) => r.id === selectedRole)?.title || 'interview'} topics...`}
                 className="flex-grow px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 font-semibold text-sm transition-colors"
                 disabled={loading}
               />

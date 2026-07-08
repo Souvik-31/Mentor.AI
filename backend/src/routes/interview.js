@@ -1,11 +1,35 @@
 const express = require('express');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Interview = require('../models/Interview');
+const CustomRole = require('../models/CustomRole');
 const router = express.Router();
 require('dotenv').config();
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+const DEFAULT_ROLES = [
+  {
+    id: 'frontend',
+    title: 'Frontend Engineer',
+    skills: 'React, TypeScript, JS, HTML/CSS, Webpack'
+  },
+  {
+    id: 'backend',
+    title: 'Backend Engineer',
+    skills: 'NodeJS, DB Indexing, REST APIs, Scaling, System Design'
+  },
+  {
+    id: 'fullstack',
+    title: 'Full-Stack Engineer',
+    skills: 'JWT Auth, WebSockets, CORS, DevOps, CI/CD'
+  },
+  {
+    id: 'aiml',
+    title: 'AI/ML Specialist',
+    skills: 'Supervised Learning, Deep Learning, Transformers, NLP, RAG'
+  }
+];
 
 // Preset suggested questions for each role
 const SUGGESTED_QUESTIONS = {
@@ -51,11 +75,102 @@ const SUGGESTED_QUESTIONS = {
   ]
 };
 
+// Route: Get available roles (defaults + custom)
+router.get('/roles', async (req, res) => {
+  const userId = req.user ? req.user._id : req.session?.passport?.user;
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized. Please log in first.' });
+  }
+
+  try {
+    const customRoles = await CustomRole.find({ user: userId }).sort({ createdAt: 1 });
+    const formattedCustom = customRoles.map(cr => ({
+      id: cr.title, // Use title itself as the id so RAG prompt receives the correct role name
+      title: cr.title,
+      skills: 'Personalized Custom Role',
+      isCustom: true
+    }));
+    res.json([...DEFAULT_ROLES, ...formattedCustom]);
+  } catch (error) {
+    console.error('Fetch custom roles error:', error);
+    res.status(500).json({ error: 'Database fetch error' });
+  }
+});
+
+// Route: Add a custom role
+router.post('/roles', async (req, res) => {
+  const { title } = req.body;
+  const userId = req.user ? req.user._id : req.session?.passport?.user;
+
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized. Please log in first.' });
+  }
+
+  if (!title || !title.trim()) {
+    return res.status(400).json({ error: 'Role title is required' });
+  }
+
+  try {
+    // Check if role already exists for user
+    const existing = await CustomRole.findOne({ user: userId, title: { $regex: new RegExp(`^${title.trim()}$`, 'i') } });
+    if (existing) {
+      return res.status(400).json({ error: 'This role already exists' });
+    }
+
+    const newRole = await CustomRole.create({
+      user: userId,
+      title: title.trim()
+    });
+
+    res.status(201).json({
+      id: newRole.title,
+      title: newRole.title,
+      skills: 'Personalized Custom Role',
+      isCustom: true
+    });
+  } catch (error) {
+    console.error('Create custom role error:', error);
+    res.status(500).json({ error: 'Failed to create custom role' });
+  }
+});
+
 // Route: Get suggested questions for a role
-router.get('/suggested/:role', (req, res) => {
+router.get('/suggested/:role', async (req, res) => {
   const { role } = req.params;
-  const questions = SUGGESTED_QUESTIONS[role.toLowerCase()] || [];
-  res.json(questions);
+  const roleKey = role.toLowerCase();
+
+  if (SUGGESTED_QUESTIONS[roleKey]) {
+    return res.json(SUGGESTED_QUESTIONS[roleKey]);
+  }
+
+  // Generate on-the-fly suggestions using Gemini
+  try {
+    const prompt = `
+      You are an expert technical recruiter.
+      Generate a list of 8 high-frequency, important technical interview questions for the role: "${role}".
+      Output ONLY a JSON array of strings. Do not include markdown formatting or backticks.
+      Example format:
+      ["Question 1", "Question 2", "Question 3"]
+    `;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    let text = response.text();
+    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    
+    const questions = JSON.parse(text);
+    res.json(questions);
+  } catch (err) {
+    console.error('Failed to generate suggestions for custom role:', err);
+    // Fallback preset
+    res.json([
+      `Explain the core concepts and frameworks required for a ${role}.`,
+      `Describe a challenging architecture or problem you solved as a ${role}.`,
+      `What are the security best practices for a ${role}?`,
+      `How do you handle scaling and performance optimization as a ${role}?`,
+      `What is your process for writing unit and integration tests?`
+    ]);
+  }
 });
 
 // Route: Get Q&A history for a role
