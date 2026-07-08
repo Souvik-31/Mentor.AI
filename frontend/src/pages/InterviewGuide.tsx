@@ -500,73 +500,71 @@ const InterviewGuide = () => {
           {/* RIGHT COL: MOCK CHAT INTERACTION */}
           <div className="lg:col-span-2 flex flex-col h-[700px] bg-white rounded-3xl shadow-xl border border-slate-100 p-6 overflow-hidden">
             {/* Chat Messages */}
-            <div className="flex-grow overflow-y-auto space-y-4 pr-1 scrollbar-thin flex flex-col">
-              <div className="flex-grow space-y-4 overflow-y-auto pr-1">
-                <AnimatePresence initial={false}>
-                  {messages.map((msg, idx) => {
-                    const isUser = msg.role === 'user';
-                    return (
-                      <motion.div
-                        key={idx}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div className="max-w-[85%] space-y-1.5">
+            <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin mb-4">
+              <AnimatePresence initial={false}>
+                {messages.map((msg, idx) => {
+                  const isUser = msg.role === 'user';
+                  return (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div className="max-w-[85%] space-y-1.5">
+                        <div
+                          className={`px-4.5 py-3 rounded-2xl text-sm leading-relaxed shadow-sm font-medium ${
+                            isUser
+                              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-br-none'
+                              : 'bg-slate-100 text-slate-800 rounded-bl-none border border-slate-200/50'
+                          }`}
+                        >
+                          {!isUser && idx > 0 && (
+                            <div className="flex items-center gap-1 text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2 border-b border-slate-200/60 pb-1">
+                              <Sparkles size={10} className="text-blue-500 animate-pulse" />
+                              <span>Interview Advisor</span>
+                            </div>
+                          )}
                           <div
-                            className={`px-4.5 py-3 rounded-2xl text-sm leading-relaxed shadow-sm font-medium ${
-                              isUser
-                                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-br-none'
-                                : 'bg-slate-100 text-slate-800 rounded-bl-none border border-slate-200/50'
-                            }`}
-                          >
-                            {!isUser && idx > 0 && (
-                              <div className="flex items-center gap-1 text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2 border-b border-slate-200/60 pb-1">
-                                <Sparkles size={10} className="text-blue-500 animate-pulse" />
-                                <span>Interview Advisor</span>
-                              </div>
-                            )}
-                            <div
-                              className="prose prose-sm max-w-none text-slate-800 dark:prose-invert 
-                                         prose-p:my-1 prose-p:leading-relaxed prose-headings:text-slate-900 
-                                         prose-headings:font-bold prose-headings:my-2 prose-ul:list-disc 
-                                         prose-ul:pl-4 prose-ol:list-decimal prose-ol:pl-4 prose-strong:font-bold 
-                                         prose-code:bg-slate-200/60 prose-code:px-1 prose-code:py-0.5 
-                                         prose-code:rounded prose-code:text-[11px] prose-code:font-mono"
-                              dangerouslySetInnerHTML={{
-                                __html: DOMPurify.sanitize(md.render(msg.text))
-                              }}
-                            />
-                          </div>
+                            className="prose prose-sm max-w-none text-slate-800 dark:prose-invert 
+                                       prose-p:my-1 prose-p:leading-relaxed prose-headings:text-slate-900 
+                                       prose-headings:font-bold prose-headings:my-2 prose-ul:list-disc 
+                                       prose-ul:pl-4 prose-ol:list-decimal prose-ol:pl-4 prose-strong:font-bold 
+                                       prose-code:bg-slate-200/60 prose-code:px-1 prose-code:py-0.5 
+                                       prose-code:rounded prose-code:text-[11px] prose-code:font-mono"
+                            dangerouslySetInnerHTML={{
+                              __html: DOMPurify.sanitize(md.render(msg.text))
+                            }}
+                          />
                         </div>
-                      </motion.div>
-                    );
-                  })}
-                </AnimatePresence>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
 
-                {loading && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex justify-start"
-                  >
-                    <div className="bg-slate-100 border border-slate-200/50 rounded-2xl rounded-bl-none px-4.5 py-3.5 flex items-center gap-2">
-                      <Loader2 className="animate-spin text-blue-600" size={16} />
-                      <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Evaluating Answer...</span>
-                    </div>
-                  </motion.div>
-                )}
-
-                {error && (
-                  <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-2 text-xs font-semibold">
-                    <AlertCircle size={16} className="text-red-500" />
-                    <span>{error}</span>
+              {loading && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex justify-start"
+                >
+                  <div className="bg-slate-100 border border-slate-200/50 rounded-2xl rounded-bl-none px-4.5 py-3.5 flex items-center gap-2">
+                    <Loader2 className="animate-spin text-blue-600" size={16} />
+                    <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Evaluating Answer...</span>
                   </div>
-                )}
+                </motion.div>
+              )}
 
-                <div ref={chatEndRef} />
-              </div>
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-2 text-xs font-semibold">
+                  <AlertCircle size={16} className="text-red-500" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <div ref={chatEndRef} />
             </div>
 
             {/* Input Message Form */}

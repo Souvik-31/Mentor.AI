@@ -226,20 +226,26 @@ router.post('/ask', async (req, res) => {
       Candidate Question: ${question}
     `;
 
-    // Initialize chat session
+    // Initialize chat session with structured JSON schema output
     const chat = model.startChat({
       history: formattedHistory,
       generationConfig: {
         maxOutputTokens: 2048,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "OBJECT",
+          properties: {
+            category: { type: "STRING" },
+            answer: { type: "STRING" }
+          },
+          required: ["category", "answer"]
+        }
       }
     });
 
     const result = await chat.sendMessage(prompt);
     const response = await result.response;
-    let text = response.text();
-
-    // Basic cleaning of JSON markdown tags if present
-    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    const text = response.text().trim();
     
     let parsedResult;
     try {
