@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { GraduationCap, LogOut, User, FileText, Menu, X, Sparkles, MessageSquare, Home } from 'lucide-react';
+import { GraduationCap, LogOut, User, FileText, Menu, X, Sparkles, MessageSquare, Home, Play } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -279,6 +279,15 @@ const Navbar = () => {
                   >
                     <Home size={18} />
                     <span>Home Dashboard</span>
+                  </Link>
+
+                  <Link
+                    to="/watchlist"
+                    onClick={() => setSidebarOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-blue-600 dark:hover:text-blue-400 transition-all font-bold text-sm"
+                  >
+                    <Play size={18} />
+                    <span>My Watchlist</span>
                   </Link>
 
                   <Link

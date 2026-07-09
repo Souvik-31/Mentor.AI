@@ -7,6 +7,7 @@ import SemPrep from './pages/SemPrep';
 import Login from './pages/Login';
 import InterviewGuide from './pages/InterviewGuide';
 import OAuthSuccess from './pages/OAuthSuccess';
+import Watchlist from './pages/Watchlist';
 import Navbar from './components/Navbar';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
@@ -65,6 +66,16 @@ function App() {
                     <ProtectedRoute>
                       <div className="container mx-auto px-4 py-8">
                         <InterviewGuide />
+                      </div>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/watchlist"
+                  element={
+                    <ProtectedRoute>
+                      <div className="container mx-auto px-4 py-8">
+                        <Watchlist />
                       </div>
                     </ProtectedRoute>
                   }
