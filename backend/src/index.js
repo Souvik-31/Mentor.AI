@@ -1,11 +1,12 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const session = require('express-session');
+const cookieParser = require('cookie-parser');
 const passport = require('./config/passport');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const RedisService = require('./services/RedisService');
 
 const authRoutes = require('./routes/auth');
 const videoRoutes = require('./routes/video');
@@ -16,10 +17,14 @@ const interviewRoutes = require('./routes/interview');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Connect to MongoDB
+// Connect to MongoDB & Initialize Redis
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB Connection Error:', err));
+  .then(() => {
+    console.log('Connected to MongoDB');
+    // Connect to Redis (or fallback to cache)
+    return RedisService.connect();
+  })
+  .catch(err => console.error('Database/Redis Initialization Error:', err));
 
 // Middleware
 app.use(helmet());
@@ -29,14 +34,8 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: false }
-}));
+app.use(cookieParser());
 app.use(passport.initialize());
-app.use(passport.session());
 
 // Routes
 app.use('/api/auth', authRoutes);

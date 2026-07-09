@@ -3,18 +3,7 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const LocalStrategy = require('passport-local').Strategy;
 const User = require('../models/User');
 
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await User.findById(id);
-    done(null, user);
-  } catch (err) {
-    done(err, null);
-  }
-});
+// Passport setup (sessions disabled, JWT-based auth used instead)
 
 // Google Strategy
 passport.use(new GoogleStrategy({
@@ -47,8 +36,9 @@ passport.use(new LocalStrategy({ usernameField: 'email' },
       const user = await User.findOne({ email }).select('+password');
       if (!user) return done(null, false, { message: 'Incorrect email.' });
       
-      // In a real app, use bcrypt to compare passwords
-      if (user.password !== password) return done(null, false, { message: 'Incorrect password.' });
+      // Use the comparePassword method to compare hashed passwords
+      const isMatch = await user.comparePassword(password);
+      if (!isMatch) return done(null, false, { message: 'Incorrect password.' });
       
       return done(null, user);
     } catch (err) {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { Upload, FileText, Loader2, BookOpen, AlertCircle } from 'lucide-react';
 
 interface Question {
@@ -53,8 +53,7 @@ const SemPrep = () => {
     });
 
     try {
-      const response = await axios.post('http://localhost:5000/api/semprep/generate', formData, {
-        withCredentials: true,
+      const response = await api.post('/api/semprep/generate', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

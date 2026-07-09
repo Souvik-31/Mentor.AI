@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import YouTube from 'react-youtube';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileText, HelpCircle, List, Loader2, MessageSquare } from 'lucide-react';
@@ -18,7 +18,7 @@ const VideoView = () => {
   useEffect(() => {
     const fetchVideo = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/videos/${videoId}`, { withCredentials: true });
+        const res = await api.get(`/api/videos/${videoId}`);
         setVideo(res.data);
       } catch (err) {
         console.error('Failed to fetch video');

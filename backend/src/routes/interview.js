@@ -2,6 +2,7 @@ const express = require('express');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Interview = require('../models/Interview');
 const CustomRole = require('../models/CustomRole');
+const authenticateJWT = require('../middleware/auth');
 const router = express.Router();
 require('dotenv').config();
 
@@ -76,11 +77,8 @@ const SUGGESTED_QUESTIONS = {
 };
 
 // Route: Get available roles (defaults + custom)
-router.get('/roles', async (req, res) => {
-  const userId = req.user ? req.user._id : req.session?.passport?.user;
-  if (!userId) {
-    return res.status(401).json({ error: 'Unauthorized. Please log in first.' });
-  }
+router.get('/roles', authenticateJWT, async (req, res) => {
+  const userId = req.user._id;
 
   try {
     const customRoles = await CustomRole.find({ user: userId }).sort({ createdAt: 1 });
@@ -98,13 +96,9 @@ router.get('/roles', async (req, res) => {
 });
 
 // Route: Add a custom role
-router.post('/roles', async (req, res) => {
+router.post('/roles', authenticateJWT, async (req, res) => {
   const { title } = req.body;
-  const userId = req.user ? req.user._id : req.session?.passport?.user;
-
-  if (!userId) {
-    return res.status(401).json({ error: 'Unauthorized. Please log in first.' });
-  }
+  const userId = req.user._id;
 
   if (!title || !title.trim()) {
     return res.status(400).json({ error: 'Role title is required' });
@@ -174,13 +168,9 @@ router.get('/suggested/:role', async (req, res) => {
 });
 
 // Route: Get Q&A history for a role
-router.get('/history/:role', async (req, res) => {
+router.get('/history/:role', authenticateJWT, async (req, res) => {
   const { role } = req.params;
-  const userId = req.user ? req.user._id : req.session?.passport?.user;
-
-  if (!userId) {
-    return res.status(401).json({ error: 'Unauthorized. Please log in first.' });
-  }
+  const userId = req.user._id;
 
   try {
     const history = await Interview.find({ user: userId, role: role.toLowerCase() })
@@ -193,13 +183,9 @@ router.get('/history/:role', async (req, res) => {
 });
 
 // Route: Ask chatbot a question
-router.post('/ask', async (req, res) => {
+router.post('/ask', authenticateJWT, async (req, res) => {
   const { role, question, history } = req.body;
-  const userId = req.user ? req.user._id : req.session?.passport?.user;
-
-  if (!userId) {
-    return res.status(401).json({ error: 'Unauthorized. Please log in first.' });
-  }
+  const userId = req.user._id;
 
   if (!role || !question) {
     return res.status(400).json({ error: 'Role and question are required' });

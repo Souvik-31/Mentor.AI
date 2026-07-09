@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { Send, Sparkles, Loader2, BookOpen, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MarkdownIt from 'markdown-it';
@@ -69,13 +69,12 @@ const ChatView: React.FC<ChatViewProps> = ({ videoId }) => {
         }));
 
       // 3. Request RAG backend endpoint
-      const response = await axios.post(
-        `http://localhost:5000/api/chat/${videoId}`,
+      const response = await api.post(
+        `/api/chat/${videoId}`,
         {
           question: userText,
           history: chatHistory
-        },
-        { withCredentials: true }
+        }
       );
 
       // 4. Append AI response

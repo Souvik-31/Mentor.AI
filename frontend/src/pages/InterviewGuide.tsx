@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import {
   ArrowLeft,
   Code,
@@ -109,7 +109,7 @@ const InterviewGuide = () => {
   useEffect(() => {
     const fetchRoles = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/interview/roles', { withCredentials: true });
+        const res = await api.get('/api/interview/roles');
         const mapped = res.data.map((r: any) => {
           const matchedStatic = ROLES_STATIC.find(sr => sr.id === r.id);
           if (matchedStatic) {
@@ -141,8 +141,8 @@ const InterviewGuide = () => {
       setError(null);
       try {
         const [sugRes, histRes] = await Promise.all([
-          axios.get(`http://localhost:5000/api/interview/suggested/${selectedRole}`, { withCredentials: true }),
-          axios.get(`http://localhost:5000/api/interview/history/${selectedRole}`, { withCredentials: true })
+          api.get(`/api/interview/suggested/${selectedRole}`),
+          api.get(`/api/interview/history/${selectedRole}`)
         ]);
         setSuggestedQuestions(sugRes.data);
         setHistory(histRes.data);
@@ -200,14 +200,13 @@ const InterviewGuide = () => {
           text: msg.text
         }));
 
-      const res = await axios.post(
-        'http://localhost:5000/api/interview/ask',
+      const res = await api.post(
+        '/api/interview/ask',
         {
           role: selectedRole,
           question: questionText,
           history: chatHistory
-        },
-        { withCredentials: true }
+        }
       );
 
       // Append AI response
@@ -270,10 +269,9 @@ const InterviewGuide = () => {
     setError(null);
 
     try {
-      const res = await axios.post(
-        'http://localhost:5000/api/interview/roles',
-        { title: customRoleTitle.trim() },
-        { withCredentials: true }
+      const res = await api.post(
+        '/api/interview/roles',
+        { title: customRoleTitle.trim() }
       );
 
       const newRole = {

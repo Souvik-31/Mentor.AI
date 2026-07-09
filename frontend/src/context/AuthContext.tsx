@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import api, { setAccessToken } from '../utils/api';
 
 interface User {
   _id: string;
@@ -12,6 +12,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, displayName: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -21,32 +22,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Silent refresh and load user on boot
   useEffect(() => {
-    const fetchUser = async () => {
+    const bootAuth = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/auth/me', { withCredentials: true });
+        // Attempt to perform silent token refresh
+        const refreshRes = await api.post('/api/auth/refresh');
+        setAccessToken(refreshRes.data.accessToken);
+
+        // Fetch current user details
+        const res = await api.get('/api/auth/me');
         setUser(res.data);
       } catch (err) {
+        setAccessToken('');
         setUser(null);
       } finally {
         setLoading(false);
       }
     };
-    fetchUser();
+    bootAuth();
   }, []);
 
   const login = async (email: string, password: string) => {
-    const res = await axios.post('http://localhost:5000/api/auth/login', { email, password }, { withCredentials: true });
-    setUser(res.data);
+    const res = await api.post('/api/auth/login', { email, password });
+    setAccessToken(res.data.accessToken);
+    setUser(res.data.user);
+  };
+
+  const register = async (email: string, password: string, displayName: string) => {
+    const res = await api.post('/api/auth/register', { email, password, displayName });
+    setAccessToken(res.data.accessToken);
+    setUser(res.data.user);
   };
 
   const logout = async () => {
-    await axios.post('http://localhost:5000/api/auth/logout', {}, { withCredentials: true });
+    await api.post('/api/auth/logout');
+    setAccessToken('');
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

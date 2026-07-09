@@ -6,6 +6,7 @@ import VideoView from './pages/VideoView';
 import SemPrep from './pages/SemPrep';
 import Login from './pages/Login';
 import InterviewGuide from './pages/InterviewGuide';
+import OAuthSuccess from './pages/OAuthSuccess';
 import Navbar from './components/Navbar';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
@@ -68,6 +69,7 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route path="/oauth-success" element={<OAuthSuccess />} />
                 <Route path="/login" element={<div className="container mx-auto px-4 py-8"><Login /></div>} />
               </Routes>
             </main>

@@ -1,15 +1,16 @@
 const express = require('express');
-const router = express.Router();
 const multer = require('multer');
 const AIService = require('../services/AIService');
 const SemPrep = require('../models/SemPrep');
+const authenticateJWT = require('../middleware/auth');
+const router = express.Router();
 
 const storage = multer.memoryStorage();
 const upload = multer({ 
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
 });
 
-router.post('/generate', upload.array('files'), async (req, res) => {
+router.post('/generate', authenticateJWT, upload.array('files'), async (req, res) => {
   try {
     const { title } = req.body;
     const files = req.files;
@@ -21,7 +22,7 @@ router.post('/generate', upload.array('files'), async (req, res) => {
     const generatedPaper = await AIService.generateSemPrep(files, title);
 
     const semPrep = new SemPrep({
-      user: req.user ? req.user._id : '000000000000000000000000', // Default if no auth yet
+      user: req.user._id,
       title,
       generatedPaper,
     });
@@ -35,9 +36,9 @@ router.post('/generate', upload.array('files'), async (req, res) => {
   }
 });
 
-router.get('/history', async (req, res) => {
+router.get('/history', authenticateJWT, async (req, res) => {
   try {
-    const history = await SemPrep.find({ user: req.user ? req.user._id : '000000000000000000000000' })
+    const history = await SemPrep.find({ user: req.user._id })
       .sort({ createdAt: -1 });
     res.json(history);
   } catch (error) {
@@ -45,9 +46,9 @@ router.get('/history', async (req, res) => {
   }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticateJWT, async (req, res) => {
   try {
-    const semPrep = await SemPrep.findById(req.params.id);
+    const semPrep = await SemPrep.findOne({ _id: req.params.id, user: req.user._id });
     if (!semPrep) return res.status(404).json({ error: 'Not found' });
     res.json(semPrep);
   } catch (error) {
