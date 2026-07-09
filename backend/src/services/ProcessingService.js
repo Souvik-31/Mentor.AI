@@ -29,8 +29,25 @@ class ProcessingService {
         const transcript = await TranscriptService.getTranscript(videoId);
         const { summary, quiz } = await AIService.generateSummaryAndQuiz(transcript);
         
+        // Fetch YouTube title and thumbnail via oEmbed
+        let title = 'YouTube Video';
+        let thumbnail = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+        
+        try {
+          const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+          if (response.ok) {
+            const data = await response.json();
+            title = data.title || title;
+            thumbnail = data.thumbnail_url || thumbnail;
+          }
+        } catch (metaErr) {
+          console.warn('⚠️ oEmbed fetch failed, using fallback metadata:', metaErr.message);
+        }
+
         const result = {
           videoId,
+          title,
+          thumbnail,
           transcript,
           summary,
           quiz,

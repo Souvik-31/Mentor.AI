@@ -31,6 +31,40 @@ const Home = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  // --- Watchlist State ---
+  const [watchlist, setWatchlist] = useState<any[]>([]);
+  const [watchlistLoading, setWatchlistLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      const fetchWatchlist = async () => {
+        setWatchlistLoading(true);
+        try {
+          const res = await api.get('/api/videos/watchlist');
+          setWatchlist(res.data);
+        } catch (err) {
+          console.error('Failed to fetch watchlist:', err);
+        } finally {
+          setWatchlistLoading(false);
+        }
+      };
+      fetchWatchlist();
+    } else {
+      setWatchlist([]);
+    }
+  }, [user]);
+
+  const handleRemoveWatchlistItem = async (videoId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await api.delete(`/api/videos/watchlist/${videoId}`);
+      setWatchlist((prev) => prev.filter((item) => item.videoId !== videoId));
+    } catch (err) {
+      console.error('Failed to remove item:', err);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -233,6 +267,102 @@ const Home = () => {
               </motion.div>
             )}
           </motion.div>
+
+          {/* WATCHLIST SECTION (Only shown when user is logged in) */}
+          {user && (
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+              className="w-full max-w-5xl mx-auto mt-12 mb-16 text-left px-4"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-blue-100 text-blue-600 rounded-xl">
+                    <Play size={20} className="fill-current" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">My Watchlist</h2>
+                    <p className="text-xs text-slate-500 font-semibold mt-0.5">Your recently analyzed and studied video lectures</p>
+                  </div>
+                </div>
+                <span className="text-xs font-bold px-3 py-1 bg-slate-100 text-slate-600 rounded-full border border-slate-200">
+                  {watchlist.length} {watchlist.length === 1 ? 'lecture' : 'lectures'}
+                </span>
+              </div>
+
+              {watchlistLoading ? (
+                <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-slate-200 rounded-[24px] bg-slate-50/50">
+                  <Loader2 className="animate-spin text-blue-600 mb-3" size={32} />
+                  <p className="text-sm font-semibold text-slate-500">Loading watchlist history...</p>
+                </div>
+              ) : watchlist.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-slate-200 rounded-[24px] bg-slate-50/50 text-center px-6">
+                  <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400 mb-4 border border-slate-200/60">
+                    <Brain size={24} />
+                  </div>
+                  <h3 className="text-base font-bold text-slate-800">Your Watchlist is empty</h3>
+                  <p className="text-xs text-slate-500 font-semibold mt-1 max-w-sm">
+                    Paste a YouTube link above and click "Generate Study Guide" to add your first lecture to your watchlist.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {watchlist.map((item) => (
+                    <div
+                      key={item.videoId}
+                      onClick={() => navigate(`/video/${item.videoId}`)}
+                      className="group relative bg-white border border-slate-200/80 rounded-[24px] overflow-hidden shadow-sm hover:shadow-md hover:border-blue-200/80 transition-all duration-300 flex flex-col cursor-pointer"
+                    >
+                      {/* Video Thumbnail */}
+                      <div className="aspect-video relative overflow-hidden bg-slate-900 flex-shrink-0">
+                        <img
+                          src={item.thumbnail || `https://img.youtube.com/vi/${item.videoId}/mqdefault.jpg`}
+                          alt={item.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        {/* Play Overlay */}
+                        <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/40 transition-colors flex items-center justify-center">
+                          <div className="w-11 h-11 bg-white/95 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform text-blue-600 pl-0.5">
+                            <Play size={18} className="fill-current" />
+                          </div>
+                        </div>
+
+                        {/* Remove Button */}
+                        <button
+                          onClick={(e) => handleRemoveWatchlistItem(item.videoId, e)}
+                          className="absolute top-3 right-3 p-1.5 bg-slate-900/60 hover:bg-red-600/90 text-white rounded-xl backdrop-blur-sm transition-colors border border-white/10 opacity-0 group-hover:opacity-100"
+                          title="Remove from watchlist"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+
+                      {/* Video Info */}
+                      <div className="p-4 flex-grow flex flex-col justify-between gap-3">
+                        <h4 className="text-sm font-bold text-slate-800 line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
+                          {item.title}
+                        </h4>
+                        
+                        <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 border-t border-slate-100 pt-3">
+                          <span className="flex items-center gap-1">
+                            <span>ID: {item.videoId}</span>
+                          </span>
+                          <span>
+                            {new Date(item.watchedAt).toLocaleDateString(undefined, {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
 
           {/* Social Proof Stat row */}
           <motion.div
