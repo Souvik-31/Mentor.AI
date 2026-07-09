@@ -18,7 +18,9 @@ import {
   Award,
   Send,
   X,
-  GraduationCap
+  GraduationCap,
+  MessageSquare,
+  BookOpen
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -238,29 +240,7 @@ const Home = () => {
 
 
 
-          {/* Social Proof Stat row */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto pt-8 border-t border-slate-200/50"
-          >
-            {[
-              { num: '500,000+', label: 'Videos Summarized' },
-              { num: '12 Million', label: 'Flashcards Studied' },
-              { num: '98.4%', label: 'Average Exam Score' },
-              { num: '4.9/5 ★', label: 'Student Rating' }
-            ].map((stat, i) => (
-              <div key={i} className="text-center">
-                <p className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-                  {stat.num}
-                </p>
-                <p className="text-xs sm:text-sm text-slate-500 font-semibold mt-1">
-                  {stat.label}
-                </p>
-              </div>
-            ))}
-          </motion.div>
+
         </div>
       </section>
 
@@ -541,40 +521,40 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
-                icon: Play,
-                color: 'bg-red-100 text-red-600',
-                title: 'Instant Transcript Extraction',
-                desc: 'Get full timestamps and speech text. Search topics dynamically or click on notes to play the exact moment of the video.'
-              },
-              {
                 icon: FileText,
                 color: 'bg-blue-100 text-blue-600',
-                title: 'Structured Summary Engine',
-                desc: 'Generate nested chapters, summaries, main topics, and technical glossary definitions automatically using deep NLP models.'
+                title: 'Structured Summaries',
+                desc: 'Generate nested chapters, comprehensive summaries, key takeaways, and glossary definitions for any video lecture.'
+              },
+              {
+                icon: Play,
+                color: 'bg-red-100 text-red-600',
+                title: 'Interactive Transcripts',
+                desc: 'Access time-coded transcripts of your video lectures to quickly find and jump to the exact moment you need.'
+              },
+              {
+                icon: MessageSquare,
+                color: 'bg-purple-100 text-purple-600',
+                title: 'AI Chat Assistant',
+                desc: 'Chat directly with your lecture video. Ask follow-up questions, request translations, or clarify confusing concepts.'
               },
               {
                 icon: HelpCircle,
                 color: 'bg-green-100 text-green-600',
-                title: 'Interactive Quizzes',
-                desc: 'Reinforce learning with auto-generated multiple-choice questions matching video content. Perfect for quick comprehension checks.'
+                title: 'Comprehension Quizzes',
+                desc: 'Test your understanding with auto-generated multiple-choice questions matching video content.'
               },
               {
-                icon: Award,
-                color: 'bg-purple-100 text-purple-600',
+                icon: BookOpen,
+                color: 'bg-yellow-100 text-yellow-600',
                 title: 'Semester Prep (SemPrep)',
-                desc: 'Upload past exam papers and syllabus PDFs. Our smart parser structures exam-focused revision sets for your semester exams.'
+                desc: 'Upload syllabus guidelines and past papers to automatically generate customized practice exam sheets.'
               },
               {
                 icon: Brain,
-                color: 'bg-yellow-100 text-yellow-600',
-                title: 'Flippable Smart Cards',
-                desc: 'Auto-compile flashcards with questions on the front and detailed AI breakdowns on the back. Star card concepts to study later.'
-              },
-              {
-                icon: Zap,
                 color: 'bg-indigo-100 text-indigo-600',
-                title: 'Ultra-Fast Generation',
-                desc: 'Average execution takes less than 30 seconds for a full lecture, utilizing multi-threaded audio extraction in the backend.'
+                title: 'Interview Guide',
+                desc: 'Prepare for technical and behavioral interviews with AI-generated questions, feedback, and sample answers.'
               }
             ].map((feat, idx) => (
               <div
