@@ -13,15 +13,34 @@ passport.use(new GoogleStrategy({
   },
   async (accessToken, refreshToken, profile, done) => {
     try {
+      const email = profile.emails?.[0]?.value;
+      
+      // 1. Search by Google ID first
       let user = await User.findOne({ googleId: profile.id });
+      
+      if (!user && email) {
+        // 2. Search by email to see if they registered locally
+        user = await User.findOne({ email });
+        if (user) {
+          // Link Google ID to existing account
+          user.googleId = profile.id;
+          if (!user.avatar && profile.photos?.[0]?.value) {
+            user.avatar = profile.photos[0].value;
+          }
+          await user.save();
+        }
+      }
+      
+      // 3. Create a new user if neither exists
       if (!user) {
         user = await User.create({
           googleId: profile.id,
           displayName: profile.displayName,
-          email: profile.emails[0].value,
-          avatar: profile.photos[0].value
+          email: email || undefined,
+          avatar: profile.photos?.[0]?.value || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(profile.displayName || 'User')}`
         });
       }
+      
       return done(null, user);
     } catch (err) {
       return done(err, null);
