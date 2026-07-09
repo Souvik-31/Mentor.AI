@@ -238,8 +238,62 @@ const Home = () => {
             )}
           </motion.div>
 
+          {/* Quick Access Tools (SemPrep & Interview Guide) */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="max-w-3xl mx-auto pt-10 border-t border-slate-200/50 dark:border-slate-800/50"
+          >
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-6 text-center">
+              Explore Academic Tools
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+              <Link
+                to="/semprep"
+                className="group flex items-center justify-between p-5 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 rounded-2xl hover:border-blue-500/40 hover:shadow-md transition-all duration-300"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-xl group-hover:scale-105 transition-transform">
+                    <BookOpen size={20} />
+                  </div>
+                  <div className="text-left">
+                    <h4 className="font-extrabold text-sm text-slate-900 dark:text-slate-250">
+                      Semester Prep
+                    </h4>
+                    <p className="text-[11px] font-semibold text-slate-500 mt-0.5">
+                      Generate syllabus practice exams
+                    </p>
+                  </div>
+                </div>
+                <div className="text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all">
+                  <ChevronDown size={16} className="-rotate-90" />
+                </div>
+              </Link>
 
-
+              <Link
+                to="/interview"
+                className="group flex items-center justify-between p-5 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 rounded-2xl hover:border-indigo-500/40 hover:shadow-md transition-all duration-300"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 rounded-xl group-hover:scale-105 transition-transform">
+                    <Brain size={20} />
+                  </div>
+                  <div className="text-left">
+                    <h4 className="font-extrabold text-sm text-slate-900 dark:text-slate-250">
+                      Interview Guide
+                    </h4>
+                    <p className="text-[11px] font-semibold text-slate-500 mt-0.5">
+                      Practice behavioral & tech questions
+                    </p>
+                  </div>
+                </div>
+                <div className="text-slate-400 group-hover:text-indigo-650 group-hover:translate-x-1 transition-all">
+                  <ChevronDown size={16} className="-rotate-90" />
+                </div>
+              </Link>
+            </div>
+          </motion.div>
 
         </div>
       </section>
