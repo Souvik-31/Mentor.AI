@@ -18,7 +18,10 @@ const Login = () => {
   const [error, setError] = useState('');
 
   const handleGoogleLogin = () => {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    let apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    if (apiUrl.endsWith('/')) {
+      apiUrl = apiUrl.slice(0, -1);
+    }
     window.location.href = `${apiUrl}/api/auth/google`;
   };
 

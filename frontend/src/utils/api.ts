@@ -10,8 +10,13 @@ export const getAccessToken = () => {
   return accessTokenMemory;
 };
 
+let rawBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+if (rawBaseUrl.endsWith('/')) {
+  rawBaseUrl = rawBaseUrl.slice(0, -1);
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
+  baseURL: rawBaseUrl,
   withCredentials: true,
 });
 
