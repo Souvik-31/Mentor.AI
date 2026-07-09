@@ -1,24 +1,29 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { setAccessToken } from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 import { Loader2 } from 'lucide-react';
 
 const OAuthSuccess = () => {
   const navigate = useNavigate();
+  const { loginWithToken } = useAuth();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('accessToken');
 
     if (token) {
-      setAccessToken(token);
-      // Redirect home and perform a reload to boot the AuthContext with the active access token
-      navigate('/', { replace: true });
-      window.location.reload();
+      loginWithToken(token)
+        .then(() => {
+          navigate('/', { replace: true });
+        })
+        .catch((err) => {
+          console.error('OAuth login failed:', err);
+          navigate('/login', { replace: true });
+        });
     } else {
       navigate('/login', { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, loginWithToken]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">

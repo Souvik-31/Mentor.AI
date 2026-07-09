@@ -2,7 +2,7 @@ const express = require('express');
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const RedisService = require('../services/RedisService');
+const RefreshToken = require('../models/RefreshToken');
 const authenticateJWT = require('../middleware/auth');
 const router = express.Router();
 
@@ -21,8 +21,9 @@ const generateTokens = async (user) => {
     { expiresIn: '7d' }
   );
 
-  // Store refresh token in Redis (or fallback cache) with a 7-day TTL
-  await RedisService.setRefreshToken(user._id, tokenId, 7 * 24 * 60 * 60);
+  // Store refresh token in MongoDB with a 7-day TTL
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  await RefreshToken.create({ userId: user._id, tokenId, expiresAt });
 
   return { accessToken, refreshToken };
 };
@@ -130,6 +131,7 @@ router.post('/login', async (req, res, next) => {
 
 // Refresh token rotation endpoint
 router.post('/refresh', async (req, res) => {
+  console.log('Refresh request cookies:', req.cookies);
   const refreshToken = req.cookies?.refreshToken;
   if (!refreshToken) {
     return res.status(401).json({ error: 'Refresh token is missing.' });
@@ -138,14 +140,15 @@ router.post('/refresh', async (req, res) => {
   try {
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || 'fallback_refresh_secret_key');
     
-    // Check if valid in Redis
-    const isValid = await RedisService.checkRefreshToken(decoded.userId, decoded.tokenId);
+    // Check if valid in MongoDB
+    const tokenDoc = await RefreshToken.findOne({ userId: decoded.userId, tokenId: decoded.tokenId });
+    const isValid = !!tokenDoc && tokenDoc.expiresAt > new Date();
     if (!isValid) {
       return res.status(401).json({ error: 'Invalid or revoked refresh token.' });
     }
 
     // Revoke the old token (rotation)
-    await RedisService.revokeRefreshToken(decoded.userId, decoded.tokenId);
+    await RefreshToken.deleteOne({ userId: decoded.userId, tokenId: decoded.tokenId });
 
     const User = require('../models/User');
     const user = await User.findById(decoded.userId);
@@ -173,7 +176,7 @@ router.post('/logout', async (req, res) => {
   if (refreshToken) {
     try {
       const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || 'fallback_refresh_secret_key');
-      await RedisService.revokeRefreshToken(decoded.userId, decoded.tokenId);
+      await RefreshToken.deleteOne({ userId: decoded.userId, tokenId: decoded.tokenId });
     } catch (err) {
       console.warn('Logout token decoding failed or already expired:', err.message);
     }

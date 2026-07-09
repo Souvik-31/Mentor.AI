@@ -6,8 +6,6 @@ const passport = require('./config/passport');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const RedisService = require('./services/RedisService');
-
 const authRoutes = require('./routes/auth');
 const videoRoutes = require('./routes/video');
 const semprepRoutes = require('./routes/semprep');
@@ -17,14 +15,12 @@ const interviewRoutes = require('./routes/interview');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Connect to MongoDB & Initialize Redis
+// Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
     console.log('Connected to MongoDB');
-    // Connect to Redis (or fallback to cache)
-    return RedisService.connect();
   })
-  .catch(err => console.error('Database/Redis Initialization Error:', err));
+  .catch(err => console.error('Database Initialization Error:', err));
 
 // Middleware
 app.use(helmet());
