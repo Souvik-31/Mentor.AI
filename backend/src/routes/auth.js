@@ -47,6 +47,7 @@ router.get('/google/callback',
     try {
       const { accessToken, refreshToken } = await generateTokens(req.user);
       sendRefreshTokenCookie(res, refreshToken);
+      console.log('Google callback redirecting. CLIENT_URL environment variable is:', process.env.CLIENT_URL);
       // Redirect to the client with the access token in a temporary query parameter
       res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/oauth-success?accessToken=${accessToken}`);
     } catch (err) {
