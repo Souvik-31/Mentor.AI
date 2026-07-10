@@ -94,7 +94,11 @@ router.post('/process', authenticateJWT, async (req, res) => {
     res.json(video);
   } catch (error) {
     console.error('Video processing error:', error);
-    res.status(500).json({ error: 'Failed to process video' });
+    res.status(500).json({
+      error: 'Failed to process video',
+      // Include actual error message to help with debugging on deployed services
+      details: error.message || 'Unknown error'
+    });
   }
 });
 
