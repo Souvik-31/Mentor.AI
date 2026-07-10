@@ -42,16 +42,31 @@ const sendRefreshTokenCookie = (res, token) => {
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
 
 router.get('/google/callback', 
-  passport.authenticate('google', { failureRedirect: '/login', session: false }),
+  (req, res, next) => {
+    // Diagnostic: log env vars to help debug 500s on deployed services
+    console.log('[OAuth Callback] ENV CHECK → BACKEND_URL:', process.env.BACKEND_URL, '| CLIENT_URL:', process.env.CLIENT_URL, '| NODE_ENV:', process.env.NODE_ENV, '| MONGODB_URI set:', !!process.env.MONGODB_URI, '| JWT_SECRET set:', !!process.env.JWT_SECRET);
+    passport.authenticate('google', { failureRedirect: `${process.env.CLIENT_URL || 'http://localhost:5173'}/login?error=OAuthFailed`, session: false }, (err, user, info) => {
+      if (err) {
+        console.error('[OAuth Callback] Passport error:', err);
+        return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/login?error=OAuthFailed`);
+      }
+      if (!user) {
+        console.error('[OAuth Callback] No user returned. Info:', info);
+        return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/login?error=OAuthFailed`);
+      }
+      req.user = user;
+      next();
+    })(req, res, next);
+  },
   async (req, res) => {
     try {
       const { accessToken, refreshToken } = await generateTokens(req.user);
       sendRefreshTokenCookie(res, refreshToken);
-      console.log('Google callback redirecting. CLIENT_URL environment variable is:', process.env.CLIENT_URL);
-      // Redirect to the client with the access token in a temporary query parameter
-      res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/oauth-success?accessToken=${accessToken}`);
+      const redirectUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/oauth-success?accessToken=${accessToken}`;
+      console.log('[OAuth Callback] Success — redirecting to:', redirectUrl);
+      res.redirect(redirectUrl);
     } catch (err) {
-      console.error('Google OAuth callback token error:', err);
+      console.error('[OAuth Callback] Token generation error:', err.stack || err);
       res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/login?error=OAuthFailed`);
     }
   }
