@@ -1,39 +1,25 @@
-const { spawn } = require('child_process');
-const path = require('path');
+const { YoutubeTranscript } = require('youtube-transcript');
 
 class TranscriptService {
   async getTranscript(videoId) {
-    return new Promise((resolve, reject) => {
-      const scriptPath = path.join(__dirname, '../../scripts/get_transcript.py');
-      const pythonProcess = spawn('python', [scriptPath, videoId]);
+    try {
+      // Fetch transcript segments from YouTube
+      const segments = await YoutubeTranscript.fetchTranscript(videoId, { lang: 'en' }).catch(() =>
+        // Fallback: fetch without language preference if English not found
+        YoutubeTranscript.fetchTranscript(videoId)
+      );
 
-      let result = '';
-      let error = '';
+      if (!segments || segments.length === 0) {
+        throw new Error('No transcript available for this video.');
+      }
 
-      pythonProcess.stdout.on('data', (data) => {
-        result += data.toString();
-      });
-
-      pythonProcess.stderr.on('data', (data) => {
-        error += data.toString();
-      });
-
-      pythonProcess.on('close', (code) => {
-        if (code !== 0) {
-          return reject(new Error(`Python process exited with code ${code}: ${error}`));
-        }
-        try {
-          const parsedResult = JSON.parse(result);
-          if (parsedResult.success) {
-            resolve(parsedResult.transcript);
-          } else {
-            reject(new Error(parsedResult.error));
-          }
-        } catch (e) {
-          reject(new Error(`Failed to parse Python output: ${e.message}`));
-        }
-      });
-    });
+      // Join all text segments into a single string
+      const fullText = segments.map(s => s.text).join(' ');
+      return fullText;
+    } catch (err) {
+      console.error('TranscriptService error:', err.message);
+      throw new Error(`Failed to fetch transcript: ${err.message}`);
+    }
   }
 }
 
