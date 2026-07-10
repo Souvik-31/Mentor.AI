@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import api, { setAccessToken } from '../utils/api';
 
 interface User {
@@ -22,10 +22,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  // Track if loginWithToken is in progress so bootAuth doesn't clobber it
+  const oauthInProgress = useRef(false);
 
   // Silent refresh and load user on boot
   useEffect(() => {
     const bootAuth = async () => {
+      // If OAuth login is already handling auth, skip the silent refresh
+      if (oauthInProgress.current) return;
       try {
         // Attempt to perform silent token refresh
         const refreshRes = await api.post('/api/auth/refresh');
@@ -35,10 +39,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const res = await api.get('/api/auth/me');
         setUser(res.data);
       } catch (err) {
-        setAccessToken('');
-        setUser(null);
+        // Only clear if oauth hasn't already set the user
+        if (!oauthInProgress.current) {
+          setAccessToken('');
+          setUser(null);
+        }
       } finally {
-        setLoading(false);
+        if (!oauthInProgress.current) {
+          setLoading(false);
+        }
       }
     };
     bootAuth();
@@ -63,9 +72,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const loginWithToken = async (token: string) => {
-    setAccessToken(token);
-    const res = await api.get('/api/auth/me');
-    setUser(res.data);
+    // Signal to bootAuth that OAuth is handling login — don't interfere
+    oauthInProgress.current = true;
+    setLoading(true);
+    try {
+      setAccessToken(token);
+      const res = await api.get('/api/auth/me');
+      setUser(res.data);
+    } catch (err) {
+      setAccessToken('');
+      setUser(null);
+      throw err;
+    } finally {
+      oauthInProgress.current = false;
+      setLoading(false);
+    }
   };
 
   return (
