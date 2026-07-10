@@ -77,8 +77,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       setAccessToken(token);
-      const res = await api.get('/api/auth/me');
-      setUser(res.data);
+      // Decode JWT payload locally — no network call needed, avoids all race conditions
+      // JWT format: header.payload.signature (base64url encoded)
+      const payloadBase64 = token.split('.')[1];
+      const payloadJson = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'));
+      const payload = JSON.parse(payloadJson);
+      if (!payload?.userId) throw new Error('Invalid token payload');
+
+      // Set minimal user from token so navigation to home works immediately
+      // Then fetch full profile in background (non-blocking)
+      setUser({ _id: payload.userId, displayName: '', email: payload.email || '', avatar: undefined });
+
+      // Fetch full profile silently in background
+      api.get('/api/auth/me').then(res => {
+        setUser(res.data);
+      }).catch(() => {
+        // Profile fetch failed but user is already set — not critical
+      });
     } catch (err) {
       setAccessToken('');
       setUser(null);
