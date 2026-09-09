@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import api, { setAccessToken } from '../utils/api';
 
 interface User {
@@ -71,7 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
-  const loginWithToken = async (token: string) => {
+  const loginWithToken = useCallback(async (token: string) => {
     // Signal to bootAuth that OAuth is handling login — don't interfere
     oauthInProgress.current = true;
     setLoading(true);
@@ -80,7 +80,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Decode JWT payload locally — no network call needed, avoids all race conditions
       // JWT format: header.payload.signature (base64url encoded)
       const payloadBase64 = token.split('.')[1];
-      const payloadJson = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'));
+      let base64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
+      while (base64.length % 4) {
+        base64 += '=';
+      }
+      const payloadJson = atob(base64);
       const payload = JSON.parse(payloadJson);
       if (!payload?.userId) throw new Error('Invalid token payload');
 
@@ -97,12 +101,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err) {
       setAccessToken('');
       setUser(null);
+      oauthInProgress.current = false;
       throw err;
     } finally {
-      oauthInProgress.current = false;
       setLoading(false);
     }
-  };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading, login, register, logout, loginWithToken }}>
