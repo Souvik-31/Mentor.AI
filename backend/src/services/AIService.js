@@ -1,4 +1,4 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { GoogleGenerativeAI, SchemaType } = require('@google/generative-ai');
 require('dotenv').config();
 
 class AIService {
@@ -11,36 +11,53 @@ class AIService {
     const prompt = `
       You are an expert educator. Based on the following video transcript, provide:
       1. A concise summary of the key points in Markdown format.
-      2. A 5-question multiple-choice quiz to test retention.
-      
-      Output ONLY a JSON object with this exact structure:
-      {
-        "summary": "markdown summary string here",
-        "quiz": [
-          {
-            "question": "question text",
-            "options": ["A", "B", "C", "D"],
-            "correctAnswer": "the correct option"
-          }
-        ]
-      }
+      2. A 5-question multiple-choice quiz to test retention (4 options each, where correctAnswer matches one of the options).
 
       Transcript:
       ${transcript}
     `;
 
+    const summaryAndQuizSchema = {
+      type: SchemaType.OBJECT,
+      properties: {
+        summary: {
+          type: SchemaType.STRING,
+          description: 'Concise Markdown summary of the key points from the video transcript.',
+        },
+        quiz: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.OBJECT,
+            properties: {
+              question: { type: SchemaType.STRING },
+              options: {
+                type: SchemaType.ARRAY,
+                items: { type: SchemaType.STRING },
+              },
+              correctAnswer: { type: SchemaType.STRING },
+            },
+            required: ['question', 'options', 'correctAnswer'],
+          },
+        },
+      },
+      required: ['summary', 'quiz'],
+    };
+
     try {
-      const result = await this.model.generateContent(prompt);
+      const result = await this.model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseSchema: summaryAndQuizSchema,
+        },
+      });
+
       const response = await result.response;
-      let text = response.text();
-      
-      // Basic cleaning of Markdown code blocks if present
-      text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-      
+      const text = response.text();
       return JSON.parse(text);
     } catch (error) {
       console.error('AIService Error:', error);
-      throw new Error('Failed to generate summary and quiz');
+      throw new Error(`Failed to generate summary and quiz: ${error.message}`);
     }
   }
 
@@ -51,45 +68,63 @@ class AIService {
       Based on the syllabus and the patterns in the PYQs, generate a probable question paper for the upcoming semester examination.
       
       The question paper should be structured into sections (e.g., Section A: Short Answers, Section B: Long Answers).
-      
-      Output ONLY a JSON object with this exact structure:
-      {
-        "sections": [
-          {
-            "title": "Section A",
-            "questions": [
-              {
-                "question": "question text",
-                "marks": 5,
-                "topic": "topic name"
-              }
-            ]
-          }
-        ]
-      }
     `;
+
+    const semPrepSchema = {
+      type: SchemaType.OBJECT,
+      properties: {
+        sections: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.OBJECT,
+            properties: {
+              title: { type: SchemaType.STRING },
+              questions: {
+                type: SchemaType.ARRAY,
+                items: {
+                  type: SchemaType.OBJECT,
+                  properties: {
+                    question: { type: SchemaType.STRING },
+                    marks: { type: SchemaType.NUMBER },
+                    topic: { type: SchemaType.STRING },
+                  },
+                  required: ['question', 'marks', 'topic'],
+                },
+              },
+            },
+            required: ['title', 'questions'],
+          },
+        },
+      },
+      required: ['sections'],
+    };
 
     try {
       const parts = [{ text: prompt }];
-      
+
       for (const file of files) {
         parts.push({
           inlineData: {
             data: file.buffer.toString('base64'),
-            mimeType: file.mimetype
-          }
+            mimeType: file.mimetype,
+          },
         });
       }
 
-      const result = await this.model.generateContent(parts);
+      const result = await this.model.generateContent({
+        contents: [{ role: 'user', parts }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseSchema: semPrepSchema,
+        },
+      });
+
       const response = await result.response;
-      let text = response.text();
-      
-      text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      const text = response.text();
       return JSON.parse(text);
     } catch (error) {
       console.error('AIService SemPrep Error:', error);
-      throw new Error('Failed to generate semester preparation paper');
+      throw new Error(`Failed to generate semester preparation paper: ${error.message}`);
     }
   }
 }
